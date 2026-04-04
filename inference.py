@@ -1,12 +1,21 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 import pandas as pd
 import joblib
+import time
 
-app = FastAPI()
+from prometheus_client import Counter, Histogram, generate_latest
+from fastapi.responses import Response
 
-# Load model
+app = FastAPI()  # HARUS DI ATAS
+
+# =========================
+# LOAD MODEL
+# =========================
 model = joblib.load("model.pkl")
 
+# =========================
+# ENCODING
+# =========================
 def encode_input(df):
     df["sex"] = df["sex"].map({"female": 0, "male": 1})
     df["smoker"] = df["smoker"].map({"no": 0, "yes": 1})
@@ -18,6 +27,48 @@ def encode_input(df):
     })
     return df
 
+# =========================
+# PROMETHEUS METRICS (FIX NAME)
+# =========================
+REQUEST_COUNT = Counter(
+    "http_requests_total",   # 🔥 SESUAI GRAFANA
+    "Total HTTP Requests",
+    ["method", "endpoint"]
+)
+
+REQUEST_LATENCY = Histogram(
+    "http_request_duration_seconds",
+    "Request latency"
+)
+
+ERROR_COUNT = Counter(
+    "http_errors_total",
+    "Total error count"
+)
+
+# =========================
+# MIDDLEWARE
+# =========================
+@app.middleware("http")
+async def track_metrics(request: Request, call_next):
+    start_time = time.time()
+
+    try:
+        response = await call_next(request)
+    except Exception:
+        ERROR_COUNT.inc()
+        raise
+
+    process_time = time.time() - start_time
+
+    REQUEST_COUNT.labels(request.method, request.url.path).inc()
+    REQUEST_LATENCY.observe(process_time)
+
+    return response
+
+# =========================
+# ENDPOINTS
+# =========================
 @app.get("/")
 def home():
     return {"status": "API running"}
@@ -25,13 +76,14 @@ def home():
 @app.post("/predict")
 def predict(data: dict):
     df = pd.DataFrame([data])
-
-    # Encoding FIX
     df = encode_input(df)
-
-    # Feature engineering
     df["bmi_flag"] = df["bmi"].apply(lambda x: 1 if x > 30 else 0)
-
     result = model.predict(df)
-
     return {"prediction": float(result[0])}
+
+# =========================
+# METRICS ENDPOINT (HARUS DI BAWAH)
+# =========================
+@app.get("/metrics")
+def metrics():
+    return Response(generate_latest(), media_type="text/plain")
