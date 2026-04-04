@@ -65,7 +65,11 @@ mlflow.log_param("max_depth", 6)
 mlflow.log_metric("MAE", float(mae))
 mlflow.log_metric("R2", float(r2))
 
-mlflow.sklearn.log_model(model, "model")
+mlflow.sklearn.log_model(
+    model,
+    "model",
+    registered_model_name="insurance-model"
+)
 
 # ===============================
 # OUTPUT

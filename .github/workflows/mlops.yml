@@ -25,3 +25,11 @@ jobs:
         run: |
           cd MLProject
           python modelling.py
+
+      - name: Check model exists
+        run: |
+          ls MLProject
+          test -f MLProject/model.pkl
+
+      - name: Run API test
+        run: python inference.py
