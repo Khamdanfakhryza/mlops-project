@@ -141,9 +141,11 @@ docker-compose up -d --build
 ## 🔧 GIT
 
 ```bash
+git status
 git add .
-git commit -m "mlops update"
-git push
+git commit -m "feat: integrate Prometheus monitoring with FastAPI deployment (metrics endpoint)"
+git pull origin main --rebase
+git push origin main
 ```
 
 ---
