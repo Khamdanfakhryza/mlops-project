@@ -1,17 +1,26 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 import pandas as pd
 import joblib
 import time
 
-from prometheus_client import Counter, Histogram, generate_latest
+from prometheus_client import Counter, Histogram, generate_latest, CollectorRegistry
 from fastapi.responses import Response
 
 app = FastAPI()
 
 # =========================
-# LOAD MODEL
+# LOAD MODEL (LAZY LOAD)
 # =========================
-model = joblib.load("model.pkl")
+model = None
+
+def get_model():
+    global model
+    if model is None:
+        try:
+            model = joblib.load("model.pkl")
+        except Exception as e:
+            raise RuntimeError(f"Model gagal diload: {e}")
+    return model
 
 # =========================
 # ENCODING
@@ -25,15 +34,19 @@ def encode_input(df):
         "northwest": 2,
         "northeast": 3
     })
+
+    if df.isnull().any().any():
+        raise HTTPException(status_code=400, detail="Input tidak valid")
+
     return df
 
 # =========================
-# PROMETHEUS METRICS
+# PROMETHEUS METRICS (SAFE)
 # =========================
 REQUEST_COUNT = Counter(
     "http_requests_total",
     "Total HTTP Requests",
-    ["method", "endpoint"]
+    ["method", "endpoint", "status"]
 )
 
 REQUEST_LATENCY = Histogram(
@@ -55,13 +68,20 @@ async def track_metrics(request: Request, call_next):
 
     try:
         response = await call_next(request)
+        status_code = response.status_code
     except Exception:
         ERROR_COUNT.inc()
+        status_code = 500
         raise
 
     duration = time.time() - start_time
 
-    REQUEST_COUNT.labels(request.method, request.url.path).inc()
+    REQUEST_COUNT.labels(
+        request.method,
+        request.url.path,
+        str(status_code)
+    ).inc()
+
     REQUEST_LATENCY.observe(duration)
 
     return response
@@ -75,17 +95,29 @@ def home():
 
 @app.post("/predict")
 def predict(data: dict):
-    df = pd.DataFrame([data])
+    required_fields = ["age", "sex", "bmi", "children", "smoker", "region"]
 
-    df = encode_input(df)
-    df["bmi_flag"] = df["bmi"].apply(lambda x: 1 if x > 30 else 0)
+    for field in required_fields:
+        if field not in data:
+            raise HTTPException(status_code=400, detail=f"{field} wajib diisi")
 
-    result = model.predict(df)
+    try:
+        df = pd.DataFrame([data])
 
-    return {"prediction": float(result[0])}
+        df = encode_input(df)
+        df["bmi_flag"] = df["bmi"].apply(lambda x: 1 if x > 30 else 0)
+
+        model = get_model()
+        result = model.predict(df)
+
+        return {"prediction": float(result[0])}
+
+    except Exception as e:
+        ERROR_COUNT.inc()
+        raise HTTPException(status_code=500, detail=str(e))
 
 # =========================
-# METRICS (WAJIB 1x SAJA)
+# METRICS
 # =========================
 @app.get("/metrics")
 def metrics():
