@@ -4,11 +4,9 @@ global:
 scrape_configs:
   - job_name: 'ml-api'
     metrics_path: /metrics
-    scheme: https
     static_configs:
-      - targets: ['sturdy-fiesta-q795774rw6jr29v47-8000.app.github.dev']
+      - targets: ['ml-api:8000']
 
   - job_name: 'cadvisor'
     static_configs:
-      - targets: ['172.17.0.1:8080']
-      
+      - targets: ['cadvisor:8080']
