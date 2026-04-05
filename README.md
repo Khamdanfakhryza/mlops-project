@@ -1,128 +1,128 @@
-Berikut versi README yang sudah disesuaikan dengan kondisi real project kamu (FastAPI + Prometheus + Grafana + MLflow + Codespaces URL) dan siap dipakai untuk submission / laporan.
+Berikut README yang sudah disesuaikan dengan kondisi real project kamu (Docker + FastAPI + Prometheus + Grafana + endpoint aktif) 👇
 
 ⸻
 
-🚀 MLOps Project: Medical Insurance Cost Prediction with Monitoring
+🚀 MLOps Project: Medical Insurance Prediction + Monitoring
 
 Proyek ini merupakan implementasi end-to-end Machine Learning System (MLOps) yang mencakup:
-	•	Data preprocessing
-	•	Model training & tracking (MLflow)
+	•	Model training (MLflow)
 	•	Model serving (FastAPI)
 	•	Monitoring (Prometheus + Grafana)
-	•	Deployment berbasis GitHub Codespaces
-
-🌐 Live API (Swagger UI):
-👉 https://sturdy-fiesta-q795774rw6jr29v47-8000.app.github.dev/docs
+	•	Containerization (Docker)
 
 ⸻
 
-📂 Struktur Repository
+📌 Arsitektur Sistem
+
+Client → FastAPI (8000) → Model Prediction
+                     ↓
+                 /metrics
+                     ↓
+             Prometheus (9090)
+                     ↓
+               Grafana (3000)
+
+
+⸻
+
+📂 Struktur Project
 
 mlops-project/
-├── inference.py                 # FastAPI serving + metrics Prometheus
-├── model.pkl                   # Model hasil training
-├── prometheus.yml              # Config Prometheus
-├── prometheus_exporter.py      # (opsional lama)
+├── inference.py              # FastAPI API + metrics
+├── model.pkl                # Model hasil training
+├── prometheus.yml           # Config Prometheus
+├── docker-compose.yml       # Orkestrasi container
+├── Dockerfile               # Build API container
 ├── requirements.txt
-├── mlflow.db
-├── .github/workflows/
-│   └── mlops.yml               # CI/CD pipeline
-└── README.md
+├── mlruns/                  # MLflow tracking
+├── README.md
 
 
 ⸻
 
-📊 Dataset
+⚙️ FITUR UTAMA
 
-Dataset: Medical Insurance Cost Dataset (Kaggle)
-
-Fitur:
-	•	age
-	•	sex
-	•	bmi
-	•	children
-	•	smoker
-	•	region
-
-Target:
-	•	charges (biaya asuransi)
+✅ 1. Model Prediction API
+	•	Framework: FastAPI
+	•	Endpoint:
+	•	/predict
+	•	/metrics
 
 ⸻
 
-⚙️ Arsitektur Sistem
-
-User → FastAPI → Model (.pkl)
-                ↓
-           Prometheus (/metrics)
-                ↓
-             Grafana
-
-Tambahan:
-	•	MLflow → tracking eksperimen
+✅ 2. Monitoring (Prometheus)
+	•	Track:
+	•	Request count
+	•	Latency
+	•	Error rate
 
 ⸻
 
-🚀 CARA MENJALANKAN SISTEM (FULL STEP)
-
-1. Jalankan FastAPI (Serving Model)
-
-uvicorn inference:app --host 0.0.0.0 --port 8000
-
-Akses:
-	•	Swagger UI:
-👉 https://sturdy-fiesta-q795774rw6jr29v47-8000.app.github.dev/docs
-	•	Metrics:
-👉 https://sturdy-fiesta-q795774rw6jr29v47-8000.app.github.dev/metrics
+✅ 3. Visualization (Grafana)
+	•	Dashboard:
+	•	Throughput
+	•	Latency
+	•	Error monitoring
 
 ⸻
 
-2. Jalankan MLflow (Tracking)
-
-mlflow ui --host 0.0.0.0 --port 5000
-
-Akses:
-👉 https://sturdy-fiesta-q795774rw6jr29v47-5000.app.github.dev
-
-⸻
-
-3. Jalankan Prometheus
-
-Konfigurasi (prometheus.yml)
-
-global:
-  scrape_interval: 5s
-
-scrape_configs:
-  - job_name: 'ml-api'
-    metrics_path: /metrics
-    scheme: https
-    static_configs:
-      - targets: ['sturdy-fiesta-q795774rw6jr29v47-8000.app.github.dev']
-
-  - job_name: 'cadvisor'
-    static_configs:
-      - targets: ['172.17.0.1:8080']
-
-Jalankan:
-
-docker run -p 9090:9090 \
--v $(pwd)/prometheus.yml:/etc/prometheus/prometheus.yml \
-prom/prometheus
-
-Akses:
-👉 https://sturdy-fiesta-q795774rw6jr29v47-9090.app.github.dev
-
-Cek:
-👉 /targets → harus UP
+✅ 4. Containerized System
+	•	Semua service jalan via Docker:
+	•	ml-api → 8000
+	•	prometheus → 9090
+	•	grafana → 3000
+	•	cadvisor → 8080
 
 ⸻
 
-4. Jalankan Grafana
+▶️ CARA MENJALANKAN PROJECT
 
-docker run -d -p 3000:3000 grafana/grafana
+1. Build & Run Semua Service
 
-Akses:
-👉 https://sturdy-fiesta-q795774rw6jr29v47-3000.app.github.dev
+docker-compose up -d --build
+
+
+⸻
+
+2. Cek Container
+
+docker ps
+
+Harus muncul:
+	•	ml-api
+	•	prometheus
+	•	grafana
+	•	cadvisor
+
+⸻
+
+🌐 AKSES SERVICE
+
+🔹 FastAPI (API + Docs)
+
+http://localhost:8000/docs
+
+👉 (Codespaces)
+
+https://<your-url>-8000.app.github.dev/docs
+
+
+⸻
+
+🔹 Prometheus
+
+http://localhost:9090
+
+👉 Codespaces:
+
+https://<your-url>-9090.app.github.dev
+
+
+⸻
+
+🔹 Grafana
+
+http://localhost:3000
 
 Login:
 
@@ -132,122 +132,195 @@ pass: admin
 
 ⸻
 
-🔗 CONNECT GRAFANA KE PROMETHEUS
+🔗 SETTING GRAFANA (WAJIB)
 
-Masuk:
-	•	Connections → Data Sources → Add Prometheus
+Tambahkan Data Source
 
 Isi:
 
-URL: http://172.17.0.1:9090
+Name: prometheus
+URL: http://prometheus:9090
+Access: Server
 
 Klik:
-👉 Save & Test (harus SUCCESS)
+
+Save & Test
+
 
 ⸻
 
-📊 QUERY GRAFANA (SIAP PAKAI)
+📊 QUERY GRAFANA
 
-1. Request Rate (Throughput)
+🔹 Total Request
 
-rate(http_requests_total[1m])
+http_requests_total
 
-2. Request /predict saja
+
+⸻
+
+🔹 Request Rate (Predict)
 
 rate(http_requests_total{endpoint="/predict"}[1m])
 
-3. Total Request
 
-sum(http_requests_total)
+⸻
 
-4. Error Rate
+🔹 Latency
 
-rate(http_errors_total[1m])
-
-5. Latency (Average)
-
-rate(http_request_duration_seconds_sum[1m])
-/
-rate(http_request_duration_seconds_count[1m])
-
-6. Memory Usage
-
-process_resident_memory_bytes
-
-7. CPU Usage
-
-process_cpu_seconds_total
+histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[1m]))
 
 
 ⸻
 
-🧪 TEST LOAD (SIMULASI REQUEST)
+🔹 Error Rate
 
-Jalankan:
-
-for i in {1..50};
-do
-curl -X POST https://sturdy-fiesta-q795774rw6jr29v47-8000.app.github.dev/predict \
--H "Content-Type: application/json" \
--d '{"age":30,"sex":"male","bmi":28.5,"children":2,"smoker":"no","region":"northwest"}'
-done
+http_errors_total
 
 
 ⸻
 
-📈 HASIL MONITORING
+📡 CONTOH REQUEST API
 
-Berdasarkan metrics:
-	•	Total request /predict: 463+
-	•	Total request keseluruhan: 863
-	•	Error: 1
-	•	Latency total: ~9.43 detik
-	•	Avg latency ≈ 0.01 detik
-	•	Memory: ~218 MB
-	•	CPU time: 14.54 detik
+Endpoint:
 
-⸻
+POST /predict
 
-🧠 METRICS YANG DIGUNAKAN
+URL:
 
-Custom Metrics
-	•	http_requests_total
-	•	http_request_duration_seconds
-	•	http_errors_total
+http://localhost:8000/predict
 
-Default Metrics (Prometheus Python)
-	•	CPU usage
-	•	Memory usage
-	•	GC statistics
+Body:
+
+{
+  "age": 30,
+  "sex": "male",
+  "bmi": 28.5,
+  "children": 2,
+  "smoker": "no",
+  "region": "northwest"
+}
+
 
 ⸻
 
-🏆 FITUR UTAMA
+🧠 METRICS YANG TERSEDIA
 
-✅ FastAPI serving
-✅ Prometheus metrics integration
-✅ Grafana dashboard
-✅ MLflow experiment tracking
-✅ Docker-based monitoring
-✅ Real-time visualization
+Metric	Deskripsi
+http_requests_total	Total request
+http_request_duration_seconds	Latency
+http_errors_total	Error count
 
-⸻
-
-📌 KESIMPULAN
-
-Proyek ini berhasil membangun sistem MLOps lengkap:
-	1.	Model dapat di-serve via API
-	2.	Semua request termonitor
-	3.	Performa (latency, throughput) terukur
-	4.	Resource (CPU, RAM) terpantau
-	5.	Visualisasi real-time via Grafana
 
 ⸻
 
-✨ NEXT IMPROVEMENT
-	•	Alerting Grafana (CPU tinggi, error spike)
-	•	Deploy ke Kubernetes
-	•	Auto-scaling API
-	•	Logging ke ELK Stack
+🐳 DOCKER COMMANDS
+
+Restart Grafana
+
+docker restart <container_id>
+
+
+⸻
+
+Jalankan Grafana Manual
+
+docker run -d -p 3000:3000 grafana/grafana
+
+
+⸻
+
+Stop Semua
+
+docker-compose down
+
+
+⸻
+
+Rebuild
+
+docker-compose up -d --build
+
+
+⸻
+
+🔧 GIT WORKFLOW
+
+git status
+git add .
+git commit -m "feat: integrate Prometheus monitoring with FastAPI deployment (metrics endpoint)"
+git pull origin main --rebase
+git push origin main
+
+
+⸻
+
+⚠️ TROUBLESHOOTING
+
+❌ Grafana tidak connect Prometheus
+
+✔ Gunakan:
+
+http://prometheus:9090
+
+❌ Jangan pakai:
+	•	localhost
+	•	IP 172.x.x.x
+
+⸻
+
+❌ Port sudah dipakai
+
+lsof -i :8000
+kill -9 <PID>
+
+
+⸻
+
+❌ Container ml-api mati
+
+docker logs ml-api
+
+Biasanya:
+
+ModuleNotFoundError: prometheus_client
+
+👉 Fix:
+
+pip install prometheus_client
+
+
+⸻
+
+❌ Metrics tidak terbaca
+
+Pastikan:
+
+http://localhost:8000/metrics
+
+menampilkan:
+
+# HELP http_requests_total ...
+
+
+⸻
+
+🎯 HASIL AKHIR
+
+✅ API berjalan
+✅ Model inference aktif
+✅ Metrics masuk Prometheus
+✅ Dashboard Grafana aktif
+
+⸻
+
+✨ PENUTUP
+
+Proyek ini menunjukkan implementasi lengkap:
+	•	Machine Learning → Deployment → Monitoring → Visualization
+
+Cocok untuk:
+	•	MLOps pipeline
+	•	Production-ready system
+	•	Monitoring observability
 
 ⸻
