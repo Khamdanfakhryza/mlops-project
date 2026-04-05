@@ -1,31 +1,27 @@
-Berikut README yang sudah disesuaikan dengan kondisi real project kamu (Docker + FastAPI + Prometheus + Grafana + endpoint aktif) 👇
+# 🚀 MLOps Project: Medical Insurance Prediction + Monitoring
 
-⸻
+Proyek ini merupakan implementasi **end-to-end Machine Learning System (MLOps)** yang mencakup:
 
-🚀 MLOps Project: Medical Insurance Prediction + Monitoring
+- Model training (MLflow)
+- Model serving (FastAPI)
+- Monitoring (Prometheus + Grafana)
+- Containerization (Docker)
 
-Proyek ini merupakan implementasi end-to-end Machine Learning System (MLOps) yang mencakup:
-	•	Model training (MLflow)
-	•	Model serving (FastAPI)
-	•	Monitoring (Prometheus + Grafana)
-	•	Containerization (Docker)
+---
 
-⸻
-
-📌 Arsitektur Sistem
+## 📌 Arsitektur Sistem
 
 Client → FastAPI (8000) → Model Prediction
-                     ↓
-                 /metrics
-                     ↓
-             Prometheus (9090)
-                     ↓
-               Grafana (3000)
+↓
+/metrics
+↓
+Prometheus (9090)
+↓
+Grafana (3000)
 
+---
 
-⸻
-
-📂 Struktur Project
+## 📂 Struktur Project
 
 mlops-project/
 ├── inference.py              # FastAPI API + metrics
@@ -37,48 +33,51 @@ mlops-project/
 ├── mlruns/                  # MLflow tracking
 ├── README.md
 
+---
 
-⸻
+## ⚙️ FITUR UTAMA
 
-⚙️ FITUR UTAMA
+### ✅ 1. Model Prediction API
+- Framework: **FastAPI**
+- Endpoint:
+  - `/predict`
+  - `/metrics`
 
-✅ 1. Model Prediction API
-	•	Framework: FastAPI
-	•	Endpoint:
-	•	/predict
-	•	/metrics
+---
 
-⸻
+### ✅ 2. Monitoring (Prometheus)
+- Track:
+  - Request count
+  - Latency
+  - Error rate
 
-✅ 2. Monitoring (Prometheus)
-	•	Track:
-	•	Request count
-	•	Latency
-	•	Error rate
+---
 
-⸻
+### ✅ 3. Visualization (Grafana)
+- Dashboard:
+  - Throughput
+  - Latency
+  - Error monitoring
 
-✅ 3. Visualization (Grafana)
-	•	Dashboard:
-	•	Throughput
-	•	Latency
-	•	Error monitoring
+---
 
-⸻
+### ✅ 4. Containerized System
+Semua service berjalan menggunakan Docker:
 
-✅ 4. Containerized System
-	•	Semua service jalan via Docker:
-	•	ml-api → 8000
-	•	prometheus → 9090
-	•	grafana → 3000
-	•	cadvisor → 8080
+| Service     | Port |
+|------------|------|
+| ml-api     | 8000 |
+| prometheus | 9090 |
+| grafana    | 3000 |
+| cadvisor   | 8080 |
 
-⸻
+---
 
-▶️ CARA MENJALANKAN PROJECT
+## ▶️ CARA MENJALANKAN PROJECT
 
-1. Build & Run Semua Service
+### 1. Build & Run Semua Service
 
+```bash
 docker-compose up -d --build
 
 
@@ -88,7 +87,7 @@ docker-compose up -d --build
 
 docker ps
 
-Harus muncul:
+Pastikan muncul:
 	•	ml-api
 	•	prometheus
 	•	grafana
@@ -102,7 +101,7 @@ Harus muncul:
 
 http://localhost:8000/docs
 
-👉 (Codespaces)
+👉 Codespaces:
 
 https://<your-url>-8000.app.github.dev/docs
 
@@ -134,9 +133,7 @@ pass: admin
 
 🔗 SETTING GRAFANA (WAJIB)
 
-Tambahkan Data Source
-
-Isi:
+Tambahkan Data Source:
 
 Name: prometheus
 URL: http://prometheus:9090
@@ -155,22 +152,13 @@ Save & Test
 
 http_requests_total
 
-
-⸻
-
 🔹 Request Rate (Predict)
 
 rate(http_requests_total{endpoint="/predict"}[1m])
 
-
-⸻
-
-🔹 Latency
+🔹 Latency (P95)
 
 histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[1m]))
-
-
-⸻
 
 🔹 Error Rate
 
@@ -181,15 +169,15 @@ http_errors_total
 
 📡 CONTOH REQUEST API
 
-Endpoint:
+Endpoint
 
 POST /predict
 
-URL:
+URL
 
 http://localhost:8000/predict
 
-Body:
+Body
 
 {
   "age": 30,
@@ -219,22 +207,13 @@ Restart Grafana
 
 docker restart <container_id>
 
-
-⸻
-
 Jalankan Grafana Manual
 
 docker run -d -p 3000:3000 grafana/grafana
 
-
-⸻
-
 Stop Semua
 
 docker-compose down
-
-
-⸻
 
 Rebuild
 
@@ -262,7 +241,7 @@ git push origin main
 
 http://prometheus:9090
 
-❌ Jangan pakai:
+❌ Jangan gunakan:
 	•	localhost
 	•	IP 172.x.x.x
 
@@ -280,7 +259,7 @@ kill -9 <PID>
 
 docker logs ml-api
 
-Biasanya:
+Jika error:
 
 ModuleNotFoundError: prometheus_client
 
@@ -297,7 +276,7 @@ Pastikan:
 
 http://localhost:8000/metrics
 
-menampilkan:
+Menampilkan:
 
 # HELP http_requests_total ...
 
@@ -305,11 +284,10 @@ menampilkan:
 ⸻
 
 🎯 HASIL AKHIR
-
-✅ API berjalan
-✅ Model inference aktif
-✅ Metrics masuk Prometheus
-✅ Dashboard Grafana aktif
+	•	✅ API berjalan
+	•	✅ Model inference aktif
+	•	✅ Metrics masuk Prometheus
+	•	✅ Dashboard Grafana aktif
 
 ⸻
 
@@ -322,5 +300,3 @@ Cocok untuk:
 	•	MLOps pipeline
 	•	Production-ready system
 	•	Monitoring observability
-
-⸻
